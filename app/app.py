@@ -4,6 +4,7 @@ Backend: Flask + PostgreSQL (RDS) + Redis (caché de feed) + S3 (media)
 """
 
 import os
+import re
 import json
 import boto3
 import redis
@@ -175,7 +176,15 @@ def registro():
     password = data.get("password") or ""
 
     if not username or not email or not password:
-        return jsonify({"error": "username, email y password son obligatorios"}), 400
+        return jsonify({"error": "Usuario, correo y contraseña son obligatorios"}), 400
+    if len(username) < 3 or len(username) > 50:
+        return jsonify({"error": "El usuario debe tener entre 3 y 50 caracteres"}), 400
+    if not re.match(r"^[A-Za-z0-9_.]+$", username):
+        return jsonify({"error": "El usuario solo puede contener letras, números, punto y guion bajo"}), 400
+    if not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email):
+        return jsonify({"error": "El correo no tiene un formato válido"}), 400
+    if len(email) > 120:
+        return jsonify({"error": "El correo es demasiado largo (máx. 120 caracteres)"}), 400
     if len(password) < 6:
         return jsonify({"error": "La contraseña debe tener al menos 6 caracteres"}), 400
 
@@ -191,7 +200,13 @@ def registro():
         db.commit()
         cur.close()
     except psycopg2.errors.UniqueViolation:
-        return jsonify({"error": "username o email ya existe"}), 409
+        db.rollback()
+        cur.close()
+        return jsonify({"error": "Ese usuario o correo ya está registrado"}), 409
+    except psycopg2.Error:
+        db.rollback()
+        cur.close()
+        return jsonify({"error": "No se pudo registrar. Revisa los datos ingresados"}), 400
 
     token = _generar_token(user_id)
     return jsonify({"token": token, "user_id": user_id}), 201
