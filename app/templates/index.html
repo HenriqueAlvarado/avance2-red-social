@@ -4,73 +4,225 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MiniSocial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
 <style>
+  :root {
+    --bg: #0b0f1a;
+    --bg-card: #131a2b;
+    --bg-input: #0e1422;
+    --border: #22304d;
+    --border-light: #2d3f63;
+    --primary: #6366f1;
+    --primary-hover: #4f46e5;
+    --accent: #38bdf8;
+    --text: #e6ebf5;
+    --text-dim: #8b98b5;
+    --danger: #f43f5e;
+    --success: #22c55e;
+  }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Segoe UI', sans-serif; background: #0f0f23; color: #e0e0e0; min-height: 100vh; }
-  .navbar { background: #1a1a3e; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #4a90d9; }
-  .navbar h1 { color: #4a90d9; font-size: 22px; }
-  .navbar span { font-size: 13px; color: #aaa; }
-  #logout-btn { background: #dc3545; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; }
-  .container { max-width: 600px; margin: 40px auto; padding: 0 16px; }
-  .card { background: #1e1e3f; border-radius: 12px; padding: 28px; margin-bottom: 20px; border: 1px solid #2d2d5e; }
-  .card h2 { color: #4a90d9; margin-bottom: 18px; font-size: 18px; }
-  input, textarea { width: 100%; padding: 10px 14px; margin-bottom: 12px; background: #12122a; border: 1px solid #3a3a6e; border-radius: 8px; color: #e0e0e0; font-size: 14px; }
-  textarea { resize: vertical; min-height: 70px; }
-  button { width: 100%; padding: 11px; background: #4a90d9; color: white; border: none; border-radius: 8px; font-size: 15px; cursor: pointer; font-weight: 600; }
-  button:hover { background: #357abd; }
-  .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
-  .tab { flex: 1; padding: 10px; background: #1e1e3f; border: 1px solid #3a3a6e; border-radius: 8px; cursor: pointer; text-align: center; font-size: 14px; color: #aaa; }
-  .tab.active { background: #4a90d9; color: white; border-color: #4a90d9; }
-  .section { display: none; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: radial-gradient(1200px 600px at 20% -10%, #1a2540 0%, var(--bg) 45%);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  .navbar {
+    background: rgba(19, 26, 43, 0.85);
+    backdrop-filter: blur(12px);
+    padding: 16px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand .logo {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    display: grid; place-items: center;
+  }
+  .brand .logo svg { color: white; width: 20px; height: 20px; }
+  .brand h1 { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+  .brand h1 span { color: var(--accent); }
+  .nav-right { display: flex; align-items: center; gap: 14px; }
+  .nav-user { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-dim); }
+  .nav-user .avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    display: grid; place-items: center; color: white; font-weight: 700; font-size: 13px;
+  }
+  #logout-btn {
+    background: transparent; color: var(--text-dim);
+    border: 1px solid var(--border-light); padding: 7px 14px;
+    border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500;
+    display: none; align-items: center; gap: 6px; transition: all 0.2s;
+  }
+  #logout-btn:hover { color: var(--danger); border-color: var(--danger); }
+  #logout-btn svg { width: 15px; height: 15px; }
+
+  .container { max-width: 620px; margin: 32px auto; padding: 0 18px; }
+
+  .card {
+    background: var(--bg-card);
+    border-radius: 16px; padding: 30px;
+    margin-bottom: 20px; border: 1px solid var(--border);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+  }
+  .card-title { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .card-title svg { width: 20px; height: 20px; color: var(--accent); }
+  .card-title h2 { font-size: 19px; font-weight: 700; letter-spacing: -0.3px; }
+  .card-sub { color: var(--text-dim); font-size: 13px; margin-bottom: 22px; }
+
+  .field { position: relative; margin-bottom: 14px; }
+  .field svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--text-dim); }
+  input, textarea {
+    width: 100%; padding: 12px 14px 12px 42px;
+    background: var(--bg-input); border: 1px solid var(--border);
+    border-radius: 10px; color: var(--text); font-size: 14px;
+    font-family: inherit; transition: border 0.2s;
+  }
+  textarea { padding-left: 14px; resize: vertical; min-height: 90px; }
+  input:focus, textarea:focus { outline: none; border-color: var(--primary); }
+  input::placeholder, textarea::placeholder { color: #4a5875; }
+
+  button.primary {
+    width: 100%; padding: 12px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+    color: white; border: none; border-radius: 10px;
+    font-size: 15px; cursor: pointer; font-weight: 600;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: transform 0.1s, box-shadow 0.2s;
+  }
+  button.primary:hover { box-shadow: 0 6px 20px rgba(99,102,241,0.4); transform: translateY(-1px); }
+  button.primary svg { width: 17px; height: 17px; }
+
+  .tabs { display: flex; gap: 8px; margin-bottom: 22px; background: var(--bg-card); padding: 6px; border-radius: 12px; border: 1px solid var(--border); }
+  .tab {
+    flex: 1; padding: 10px; border-radius: 8px; cursor: pointer;
+    text-align: center; font-size: 14px; color: var(--text-dim);
+    font-weight: 500; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+  }
+  .tab svg { width: 16px; height: 16px; }
+  .tab.active { background: var(--primary); color: white; }
+
+  .section { display: none; animation: fade 0.3s ease; }
   .section.active { display: block; }
-  .post { background: #12122a; border-radius: 10px; padding: 14px; margin-bottom: 12px; border: 1px solid #2d2d5e; }
-  .post .user { color: #4a90d9; font-weight: 600; font-size: 13px; margin-bottom: 6px; }
-  .post .content { font-size: 15px; margin-bottom: 8px; }
-  .post .meta { font-size: 12px; color: #888; display: flex; gap: 16px; align-items: center; }
-  .like-btn { background: none; border: 1px solid #555; color: #aaa; padding: 3px 10px; border-radius: 20px; cursor: pointer; font-size: 12px; width: auto; }
-  .like-btn:hover { border-color: #e74c3c; color: #e74c3c; background: none; }
-  .msg { padding: 10px; border-radius: 8px; margin-bottom: 12px; font-size: 14px; text-align: center; display: none; }
-  .msg.ok { background: #1a3a2a; color: #5cb85c; border: 1px solid #5cb85c; }
-  .msg.err { background: #3a1a1a; color: #e74c3c; border: 1px solid #e74c3c; }
-  .char-count { font-size: 12px; color: #888; text-align: right; margin-top: -10px; margin-bottom: 10px; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  .feed-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .feed-head .label { font-size: 13px; color: var(--text-dim); display: flex; align-items: center; gap: 7px; }
+  .feed-head .label svg { width: 15px; height: 15px; }
+  .refresh-btn {
+    background: var(--bg-card); border: 1px solid var(--border-light);
+    color: var(--text-dim); padding: 7px 13px; border-radius: 8px;
+    cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 6px; transition: all 0.2s;
+  }
+  .refresh-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .refresh-btn svg { width: 14px; height: 14px; }
+
+  .source-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; padding: 5px 11px; border-radius: 20px;
+    margin-bottom: 16px; font-weight: 500;
+  }
+  .source-badge svg { width: 13px; height: 13px; }
+  .source-badge.cache { background: rgba(56,189,248,0.12); color: var(--accent); border: 1px solid rgba(56,189,248,0.3); }
+  .source-badge.db { background: rgba(99,102,241,0.12); color: var(--primary); border: 1px solid rgba(99,102,241,0.3); }
+
+  .post {
+    background: var(--bg-card); border-radius: 14px; padding: 18px;
+    margin-bottom: 14px; border: 1px solid var(--border); transition: border 0.2s;
+  }
+  .post:hover { border-color: var(--border-light); }
+  .post-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .post-avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    display: grid; place-items: center; color: white; font-weight: 700; font-size: 15px;
+  }
+  .post-user { font-weight: 600; font-size: 14px; }
+  .post-time { font-size: 12px; color: var(--text-dim); }
+  .post-content { font-size: 15px; line-height: 1.5; margin-bottom: 14px; }
+  .post-actions { display: flex; align-items: center; gap: 12px; }
+  .like-btn {
+    background: transparent; border: 1px solid var(--border-light);
+    color: var(--text-dim); padding: 6px 14px; border-radius: 20px;
+    cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 6px;
+    transition: all 0.2s; width: auto;
+  }
+  .like-btn svg { width: 15px; height: 15px; }
+  .like-btn:hover { border-color: var(--danger); color: var(--danger); }
+  .like-btn.liked { border-color: var(--danger); color: var(--danger); background: rgba(244,63,94,0.1); }
+
+  .empty { text-align: center; padding: 50px 20px; color: var(--text-dim); }
+  .empty svg { width: 44px; height: 44px; color: var(--border-light); margin-bottom: 14px; }
+  .empty p { font-size: 15px; }
+  .empty .hint { font-size: 13px; margin-top: 6px; }
+
+  .msg {
+    padding: 11px 14px; border-radius: 10px; margin-bottom: 14px;
+    font-size: 14px; display: none; align-items: center; gap: 8px;
+  }
+  .msg svg { width: 16px; height: 16px; flex-shrink: 0; }
+  .msg.ok { background: rgba(34,197,94,0.12); color: var(--success); border: 1px solid rgba(34,197,94,0.3); }
+  .msg.err { background: rgba(244,63,94,0.12); color: var(--danger); border: 1px solid rgba(244,63,94,0.3); }
+  .char-count { font-size: 12px; color: var(--text-dim); text-align: right; margin-top: 4px; margin-bottom: 14px; }
+
   #auth-section { display: block; }
   #app-section { display: none; }
-  .source-badge { font-size: 11px; padding: 2px 7px; border-radius: 10px; background: #2d2d5e; color: #4a90d9; }
+  .auth-hero { text-align: center; margin-bottom: 26px; }
+  .auth-hero h2 { font-size: 26px; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 6px; }
+  .auth-hero p { color: var(--text-dim); font-size: 14px; }
 </style>
 </head>
 <body>
 
 <div class="navbar">
-  <h1>🌐 MiniSocial</h1>
-  <span id="nav-user"></span>
-  <button id="logout-btn" style="display:none" onclick="logout()">Cerrar sesión</button>
+  <div class="brand">
+    <div class="logo"><i data-lucide="orbit"></i></div>
+    <h1>Mini<span>Social</span></h1>
+  </div>
+  <div class="nav-right">
+    <div class="nav-user" id="nav-user"></div>
+    <button id="logout-btn" onclick="logout()"><i data-lucide="log-out"></i> Salir</button>
+  </div>
 </div>
 
 <!-- AUTH -->
 <div class="container" id="auth-section">
+  <div class="auth-hero">
+    <h2>Conecta en tiempo real</h2>
+    <p>Publica, sigue a otros y descubre tu feed personalizado</p>
+  </div>
+
   <div class="tabs">
-    <div class="tab active" onclick="switchAuth('login')">Iniciar sesión</div>
-    <div class="tab" onclick="switchAuth('registro')">Registrarse</div>
+    <div class="tab active" onclick="switchAuth('login')"><i data-lucide="log-in"></i> Iniciar sesión</div>
+    <div class="tab" onclick="switchAuth('registro')"><i data-lucide="user-plus"></i> Registrarse</div>
   </div>
 
   <div class="section active" id="login-section">
     <div class="card">
-      <h2>Bienvenido de vuelta</h2>
+      <div class="card-title"><i data-lucide="log-in"></i><h2>Bienvenido de vuelta</h2></div>
+      <div class="card-sub">Ingresa tus credenciales para continuar</div>
       <div id="login-msg" class="msg"></div>
-      <input type="text" id="login-user" placeholder="Usuario">
-      <input type="password" id="login-pass" placeholder="Contraseña">
-      <button onclick="doLogin()">Entrar</button>
+      <div class="field"><i data-lucide="user"></i><input type="text" id="login-user" placeholder="Usuario"></div>
+      <div class="field"><i data-lucide="lock"></i><input type="password" id="login-pass" placeholder="Contraseña"></div>
+      <button class="primary" onclick="doLogin()"><i data-lucide="arrow-right"></i> Entrar</button>
     </div>
   </div>
 
   <div class="section" id="registro-section">
     <div class="card">
-      <h2>Crear cuenta</h2>
+      <div class="card-title"><i data-lucide="user-plus"></i><h2>Crear cuenta</h2></div>
+      <div class="card-sub">Únete a MiniSocial en segundos</div>
       <div id="reg-msg" class="msg"></div>
-      <input type="text" id="reg-user" placeholder="Usuario">
-      <input type="email" id="reg-email" placeholder="Correo electrónico">
-      <input type="password" id="reg-pass" placeholder="Contraseña (mín. 6 caracteres)">
-      <button onclick="doRegistro()">Registrarse</button>
+      <div class="field"><i data-lucide="user"></i><input type="text" id="reg-user" placeholder="Usuario"></div>
+      <div class="field"><i data-lucide="mail"></i><input type="email" id="reg-email" placeholder="Correo electrónico"></div>
+      <div class="field"><i data-lucide="lock"></i><input type="password" id="reg-pass" placeholder="Contraseña (mín. 6 caracteres)"></div>
+      <button class="primary" onclick="doRegistro()"><i data-lucide="sparkles"></i> Crear cuenta</button>
     </div>
   </div>
 </div>
@@ -78,74 +230,79 @@
 <!-- APP -->
 <div class="container" id="app-section">
   <div class="tabs">
-    <div class="tab active" onclick="switchTab('feed')">🏠 Feed</div>
-    <div class="tab" onclick="switchTab('publicar')">✏️ Publicar</div>
-    <div class="tab" onclick="switchTab('seguir')">👥 Seguir</div>
+    <div class="tab active" onclick="switchTab('feed')"><i data-lucide="home"></i> Feed</div>
+    <div class="tab" onclick="switchTab('publicar')"><i data-lucide="pen-line"></i> Publicar</div>
+    <div class="tab" onclick="switchTab('seguir')"><i data-lucide="users"></i> Seguir</div>
   </div>
 
-  <!-- FEED -->
   <div class="section active" id="feed-section">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <span style="font-size:13px;color:#888">Tu feed personalizado</span>
-      <button onclick="cargarFeed()" style="width:auto;padding:6px 14px;font-size:13px">🔄 Actualizar</button>
+    <div class="feed-head">
+      <span class="label"><i data-lucide="sparkles"></i> Tu feed personalizado</span>
+      <button class="refresh-btn" onclick="cargarFeed()"><i data-lucide="refresh-cw"></i> Actualizar</button>
     </div>
     <div id="feed-msg" class="msg"></div>
     <div id="feed-posts"></div>
   </div>
 
-  <!-- PUBLICAR -->
   <div class="section" id="publicar-section">
     <div class="card">
-      <h2>Nueva publicación</h2>
+      <div class="card-title"><i data-lucide="pen-line"></i><h2>Nueva publicación</h2></div>
+      <div class="card-sub">Comparte lo que estás pensando</div>
       <div id="pub-msg" class="msg"></div>
-      <textarea id="pub-contenido" placeholder="¿Qué estás pensando? (máx. 280 caracteres)" oninput="updateCount()"></textarea>
-      <div class="char-count"><span id="char-num">0</span>/280</div>
-      <button onclick="publicar()">Publicar</button>
+      <textarea id="pub-contenido" placeholder="¿Qué estás pensando?" oninput="updateCount()"></textarea>
+      <div class="char-count"><span id="char-num">0</span> / 280</div>
+      <button class="primary" onclick="publicar()"><i data-lucide="send"></i> Publicar</button>
     </div>
   </div>
 
-  <!-- SEGUIR -->
   <div class="section" id="seguir-section">
     <div class="card">
-      <h2>Seguir usuario</h2>
+      <div class="card-title"><i data-lucide="user-plus"></i><h2>Seguir usuario</h2></div>
+      <div class="card-sub">Ingresa el ID del usuario que quieres seguir</div>
       <div id="seg-msg" class="msg"></div>
-      <input type="number" id="seg-id" placeholder="ID del usuario a seguir">
-      <button onclick="seguir()">Seguir</button>
+      <div class="field"><i data-lucide="hash"></i><input type="number" id="seg-id" placeholder="ID del usuario"></div>
+      <button class="primary" onclick="seguir()"><i data-lucide="user-check"></i> Seguir</button>
     </div>
   </div>
 </div>
 
 <script>
-const API = '';
 let token = localStorage.getItem('token');
 let username = localStorage.getItem('username');
 
+function initials(name) { return (name || '?').substring(0,2).toUpperCase(); }
+
 if (token) showApp();
+
+function refreshIcons() { if (window.lucide) lucide.createIcons(); }
+document.addEventListener('DOMContentLoaded', refreshIcons);
 
 function showApp() {
   document.getElementById('auth-section').style.display = 'none';
   document.getElementById('app-section').style.display = 'block';
-  document.getElementById('nav-user').textContent = '👤 ' + username;
-  document.getElementById('logout-btn').style.display = 'block';
+  document.getElementById('nav-user').innerHTML = `<span class="avatar">${initials(username)}</span> ${username}`;
+  document.getElementById('logout-btn').style.display = 'flex';
   cargarFeed();
+  refreshIcons();
 }
 
 function logout() {
-  localStorage.removeItem('token');
-  localStorage.removeItem('username');
+  localStorage.clear();
   token = null; username = null;
   document.getElementById('auth-section').style.display = 'block';
   document.getElementById('app-section').style.display = 'none';
   document.getElementById('logout-btn').style.display = 'none';
-  document.getElementById('nav-user').textContent = '';
+  document.getElementById('nav-user').innerHTML = '';
+  refreshIcons();
 }
 
 function switchAuth(tab) {
-  document.querySelectorAll('.tabs')[0].querySelectorAll('.tab').forEach((t,i) => {
-    t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='registro'));
-  });
+  const tabsEl = document.querySelectorAll('.tabs')[0].querySelectorAll('.tab');
+  tabsEl[0].classList.toggle('active', tab==='login');
+  tabsEl[1].classList.toggle('active', tab==='registro');
   document.getElementById('login-section').classList.toggle('active', tab==='login');
   document.getElementById('registro-section').classList.toggle('active', tab==='registro');
+  refreshIcons();
 }
 
 function switchTab(tab) {
@@ -153,11 +310,15 @@ function switchTab(tab) {
   document.querySelectorAll('.tabs')[1].querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', tabs[i]===tab));
   tabs.forEach(t => document.getElementById(t+'-section').classList.toggle('active', t===tab));
   if (tab==='feed') cargarFeed();
+  refreshIcons();
 }
 
 function showMsg(id, text, type) {
   const el = document.getElementById(id);
-  el.textContent = text; el.className = 'msg ' + type; el.style.display = 'block';
+  const icon = type==='ok' ? 'check-circle' : 'alert-circle';
+  el.innerHTML = `<i data-lucide="${icon}"></i> ${text}`;
+  el.className = 'msg ' + type; el.style.display = 'flex';
+  refreshIcons();
   setTimeout(() => el.style.display='none', 4000);
 }
 
@@ -169,8 +330,7 @@ async function doLogin() {
   const d = await r.json();
   if (r.ok) {
     token = d.token; username = u;
-    localStorage.setItem('token', token);
-    localStorage.setItem('username', username);
+    localStorage.setItem('token', token); localStorage.setItem('username', username);
     showApp();
   } else showMsg('login-msg', d.error || 'Error al iniciar sesión', 'err');
 }
@@ -184,34 +344,41 @@ async function doRegistro() {
   const d = await r.json();
   if (r.ok) {
     token = d.token; username = u;
-    localStorage.setItem('token', token);
-    localStorage.setItem('username', username);
+    localStorage.setItem('token', token); localStorage.setItem('username', username);
     showApp();
   } else showMsg('reg-msg', d.error || 'Error al registrarse', 'err');
 }
 
 async function cargarFeed() {
   if (!token) return;
-  document.getElementById('feed-posts').innerHTML = '<p style="color:#888;text-align:center;padding:20px">Cargando...</p>';
-  const r = await fetch('/feed', {headers:{'Authorization':'Bearer '+token}});
-  if (!r.ok) { showMsg('feed-msg','Error al cargar el feed','err'); return; }
-  const d = await r.json();
-  const badge = `<span class="source-badge">${d.fuente === 'cache' ? '⚡ Redis caché' : '🗄 Base de datos'}</span>`;
   const container = document.getElementById('feed-posts');
+  container.innerHTML = '<div class="empty"><p>Cargando...</p></div>';
+  const r = await fetch('/feed', {headers:{'Authorization':'Bearer '+token}});
+  if (!r.ok) { showMsg('feed-msg','Error al cargar el feed','err'); container.innerHTML=''; return; }
+  const d = await r.json();
+  const badgeClass = d.fuente === 'cache' ? 'cache' : 'db';
+  const badgeIcon = d.fuente === 'cache' ? 'zap' : 'database';
+  const badgeText = d.fuente === 'cache' ? 'Servido desde Redis (caché)' : 'Servido desde PostgreSQL (RDS)';
+  const badge = `<div class="source-badge ${badgeClass}"><i data-lucide="${badgeIcon}"></i> ${badgeText}</div>`;
   if (!d.posts.length) {
-    container.innerHTML = `<div style="text-align:center;padding:40px;color:#888">${badge}<br><br>Sin publicaciones aún.<br>¡Sé el primero en publicar!</div>`;
-    return;
+    container.innerHTML = badge + `<div class="empty"><i data-lucide="inbox"></i><p>Sin publicaciones aún</p><p class="hint">Publica algo o sigue a otros usuarios</p></div>`;
+    refreshIcons(); return;
   }
-  container.innerHTML = badge + '<br><br>' + d.posts.map(p => `
+  container.innerHTML = badge + d.posts.map(p => `
     <div class="post">
-      <div class="user">@${p.username}</div>
-      <div class="content">${p.contenido}</div>
-      <div class="meta">
-        <span>❤️ ${p.likes} likes</span>
-        <button class="like-btn" onclick="like(${p.id})">Like</button>
-        <span>${new Date(p.creado_en).toLocaleString('es-MX')}</span>
+      <div class="post-head">
+        <div class="post-avatar">${initials(p.username)}</div>
+        <div>
+          <div class="post-user">${p.username}</div>
+          <div class="post-time">${new Date(p.creado_en).toLocaleString('es-MX')}</div>
+        </div>
+      </div>
+      <div class="post-content">${p.contenido}</div>
+      <div class="post-actions">
+        <button class="like-btn" onclick="like(${p.id})"><i data-lucide="heart"></i> ${p.likes}</button>
       </div>
     </div>`).join('');
+  refreshIcons();
 }
 
 async function publicar() {
@@ -221,7 +388,7 @@ async function publicar() {
   const r = await fetch('/publicaciones', {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body:JSON.stringify({contenido:c})});
   const d = await r.json();
   if (r.ok) {
-    showMsg('pub-msg','¡Publicado correctamente!','ok');
+    showMsg('pub-msg','Publicado correctamente','ok');
     document.getElementById('pub-contenido').value = '';
     document.getElementById('char-num').textContent = '0';
   } else showMsg('pub-msg', d.error || 'Error al publicar', 'err');
@@ -242,8 +409,9 @@ async function seguir() {
 
 function updateCount() {
   const len = document.getElementById('pub-contenido').value.length;
-  document.getElementById('char-num').textContent = len;
-  document.getElementById('char-num').style.color = len > 250 ? '#e74c3c' : '#888';
+  const el = document.getElementById('char-num');
+  el.textContent = len;
+  el.style.color = len > 250 ? 'var(--danger)' : 'var(--text-dim)';
 }
 </script>
 </body>

@@ -130,7 +130,7 @@ def jwt_required(f):
         token = auth.split(" ", 1)[1]
         try:
             payload = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
-            g.user_id = payload["sub"]
+            g.user_id = int(payload["sub"])
         except jwt.ExpiredSignatureError:
             return jsonify({"error": "Token expirado"}), 401
         except jwt.InvalidTokenError:
@@ -221,7 +221,7 @@ def login():
 
 def _generar_token(user_id):
     payload = {
-        "sub": user_id,
+        "sub": str(user_id),
         "iat": datetime.now(timezone.utc),
         "exp": datetime.now(timezone.utc) + timedelta(hours=24),
     }
