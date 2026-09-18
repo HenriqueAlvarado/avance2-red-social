@@ -1,0 +1,2 @@
+[PENDIENTE] Este archivo se llenará con la salida real del pipeline bloqueando.
+Ejecutar: ./pipeline/pipeline.sh > reportes/corrida_roja.txt 2>&1

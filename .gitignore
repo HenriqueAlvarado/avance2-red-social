@@ -1,0 +1,51 @@
+# ── Credenciales y secretos (NUNCA al repo) ─────────────────────────────────
+.env
+*.pem
+*.key
+*.p12
+credentials.json
+secrets/
+
+# ── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+env/
+pip-wheel-metadata/
+
+# ── Terraform ────────────────────────────────────────────────────────────────
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.backup
+*.tfvars
+terraform.tfvars
+override.tf
+override.tf.json
+
+# ── Docker ───────────────────────────────────────────────────────────────────
+*.tar
+
+# ── IDE ──────────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ── Reportes y archivos temporales ───────────────────────────────────────────
+*.log
+*.tmp
+reportes/*.txt
+!reportes/corrida_roja.txt
+!reportes/corrida_verde.txt

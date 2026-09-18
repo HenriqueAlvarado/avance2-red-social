@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+
+  # ── Contenedor 1: API Flask ─────────────────────────────────────────────
+  api:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: redsocial-api
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "5000:5000"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - redsocial-net
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:5000/salud')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # ── Contenedor 2: Redis (caché de feed) ────────────────────────────────
+  redis:
+    image: redis:7.2.5-alpine
+    container_name: redsocial-redis
+    restart: unless-stopped
+    command: redis-server --save "" --appendonly no --maxmemory 128mb --maxmemory-policy allkeys-lru
+    networks:
+      - redsocial-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+networks:
+  redsocial-net:
+    driver: bridge

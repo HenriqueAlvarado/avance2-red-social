@@ -1,0 +1,2 @@
+[PENDIENTE] Este archivo se llenará con la salida real del pipeline permitiendo.
+Ejecutar después de remediar: ./pipeline/pipeline.sh > reportes/corrida_verde.txt 2>&1
