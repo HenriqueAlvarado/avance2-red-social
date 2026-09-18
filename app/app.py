@@ -177,8 +177,8 @@ def registro():
 
     if not username or not email or not password:
         return jsonify({"error": "Usuario, correo y contraseña son obligatorios"}), 400
-    if len(username) < 3 or len(username) > 50:
-        return jsonify({"error": "El usuario debe tener entre 3 y 50 caracteres"}), 400
+    if len(username) < 3 or len(username) > 15:
+        return jsonify({"error": "El usuario debe tener entre 3 y 15 caracteres"}), 400
     if not re.match(r"^[A-Za-z0-9_.]+$", username):
         return jsonify({"error": "El usuario solo puede contener letras, números, punto y guion bajo"}), 400
     if not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email):
