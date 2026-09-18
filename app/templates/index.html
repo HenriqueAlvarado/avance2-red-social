@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MiniSocial</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', sans-serif; background: #0f0f23; color: #e0e0e0; min-height: 100vh; }
+  .navbar { background: #1a1a3e; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #4a90d9; }
+  .navbar h1 { color: #4a90d9; font-size: 22px; }
+  .navbar span { font-size: 13px; color: #aaa; }
+  #logout-btn { background: #dc3545; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+  .container { max-width: 600px; margin: 40px auto; padding: 0 16px; }
+  .card { background: #1e1e3f; border-radius: 12px; padding: 28px; margin-bottom: 20px; border: 1px solid #2d2d5e; }
+  .card h2 { color: #4a90d9; margin-bottom: 18px; font-size: 18px; }
+  input, textarea { width: 100%; padding: 10px 14px; margin-bottom: 12px; background: #12122a; border: 1px solid #3a3a6e; border-radius: 8px; color: #e0e0e0; font-size: 14px; }
+  textarea { resize: vertical; min-height: 70px; }
+  button { width: 100%; padding: 11px; background: #4a90d9; color: white; border: none; border-radius: 8px; font-size: 15px; cursor: pointer; font-weight: 600; }
+  button:hover { background: #357abd; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+  .tab { flex: 1; padding: 10px; background: #1e1e3f; border: 1px solid #3a3a6e; border-radius: 8px; cursor: pointer; text-align: center; font-size: 14px; color: #aaa; }
+  .tab.active { background: #4a90d9; color: white; border-color: #4a90d9; }
+  .section { display: none; }
+  .section.active { display: block; }
+  .post { background: #12122a; border-radius: 10px; padding: 14px; margin-bottom: 12px; border: 1px solid #2d2d5e; }
+  .post .user { color: #4a90d9; font-weight: 600; font-size: 13px; margin-bottom: 6px; }
+  .post .content { font-size: 15px; margin-bottom: 8px; }
+  .post .meta { font-size: 12px; color: #888; display: flex; gap: 16px; align-items: center; }
+  .like-btn { background: none; border: 1px solid #555; color: #aaa; padding: 3px 10px; border-radius: 20px; cursor: pointer; font-size: 12px; width: auto; }
+  .like-btn:hover { border-color: #e74c3c; color: #e74c3c; background: none; }
+  .msg { padding: 10px; border-radius: 8px; margin-bottom: 12px; font-size: 14px; text-align: center; display: none; }
+  .msg.ok { background: #1a3a2a; color: #5cb85c; border: 1px solid #5cb85c; }
+  .msg.err { background: #3a1a1a; color: #e74c3c; border: 1px solid #e74c3c; }
+  .char-count { font-size: 12px; color: #888; text-align: right; margin-top: -10px; margin-bottom: 10px; }
+  #auth-section { display: block; }
+  #app-section { display: none; }
+  .source-badge { font-size: 11px; padding: 2px 7px; border-radius: 10px; background: #2d2d5e; color: #4a90d9; }
+</style>
+</head>
+<body>
+
+<div class="navbar">
+  <h1>🌐 MiniSocial</h1>
+  <span id="nav-user"></span>
+  <button id="logout-btn" style="display:none" onclick="logout()">Cerrar sesión</button>
+</div>
+
+<!-- AUTH -->
+<div class="container" id="auth-section">
+  <div class="tabs">
+    <div class="tab active" onclick="switchAuth('login')">Iniciar sesión</div>
+    <div class="tab" onclick="switchAuth('registro')">Registrarse</div>
+  </div>
+
+  <div class="section active" id="login-section">
+    <div class="card">
+      <h2>Bienvenido de vuelta</h2>
+      <div id="login-msg" class="msg"></div>
+      <input type="text" id="login-user" placeholder="Usuario">
+      <input type="password" id="login-pass" placeholder="Contraseña">
+      <button onclick="doLogin()">Entrar</button>
+    </div>
+  </div>
+
+  <div class="section" id="registro-section">
+    <div class="card">
+      <h2>Crear cuenta</h2>
+      <div id="reg-msg" class="msg"></div>
+      <input type="text" id="reg-user" placeholder="Usuario">
+      <input type="email" id="reg-email" placeholder="Correo electrónico">
+      <input type="password" id="reg-pass" placeholder="Contraseña (mín. 6 caracteres)">
+      <button onclick="doRegistro()">Registrarse</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="container" id="app-section">
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('feed')">🏠 Feed</div>
+    <div class="tab" onclick="switchTab('publicar')">✏️ Publicar</div>
+    <div class="tab" onclick="switchTab('seguir')">👥 Seguir</div>
+  </div>
+
+  <!-- FEED -->
+  <div class="section active" id="feed-section">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span style="font-size:13px;color:#888">Tu feed personalizado</span>
+      <button onclick="cargarFeed()" style="width:auto;padding:6px 14px;font-size:13px">🔄 Actualizar</button>
+    </div>
+    <div id="feed-msg" class="msg"></div>
+    <div id="feed-posts"></div>
+  </div>
+
+  <!-- PUBLICAR -->
+  <div class="section" id="publicar-section">
+    <div class="card">
+      <h2>Nueva publicación</h2>
+      <div id="pub-msg" class="msg"></div>
+      <textarea id="pub-contenido" placeholder="¿Qué estás pensando? (máx. 280 caracteres)" oninput="updateCount()"></textarea>
+      <div class="char-count"><span id="char-num">0</span>/280</div>
+      <button onclick="publicar()">Publicar</button>
+    </div>
+  </div>
+
+  <!-- SEGUIR -->
+  <div class="section" id="seguir-section">
+    <div class="card">
+      <h2>Seguir usuario</h2>
+      <div id="seg-msg" class="msg"></div>
+      <input type="number" id="seg-id" placeholder="ID del usuario a seguir">
+      <button onclick="seguir()">Seguir</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '';
+let token = localStorage.getItem('token');
+let username = localStorage.getItem('username');
+
+if (token) showApp();
+
+function showApp() {
+  document.getElementById('auth-section').style.display = 'none';
+  document.getElementById('app-section').style.display = 'block';
+  document.getElementById('nav-user').textContent = '👤 ' + username;
+  document.getElementById('logout-btn').style.display = 'block';
+  cargarFeed();
+}
+
+function logout() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('username');
+  token = null; username = null;
+  document.getElementById('auth-section').style.display = 'block';
+  document.getElementById('app-section').style.display = 'none';
+  document.getElementById('logout-btn').style.display = 'none';
+  document.getElementById('nav-user').textContent = '';
+}
+
+function switchAuth(tab) {
+  document.querySelectorAll('.tabs')[0].querySelectorAll('.tab').forEach((t,i) => {
+    t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='registro'));
+  });
+  document.getElementById('login-section').classList.toggle('active', tab==='login');
+  document.getElementById('registro-section').classList.toggle('active', tab==='registro');
+}
+
+function switchTab(tab) {
+  const tabs = ['feed','publicar','seguir'];
+  document.querySelectorAll('.tabs')[1].querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', tabs[i]===tab));
+  tabs.forEach(t => document.getElementById(t+'-section').classList.toggle('active', t===tab));
+  if (tab==='feed') cargarFeed();
+}
+
+function showMsg(id, text, type) {
+  const el = document.getElementById(id);
+  el.textContent = text; el.className = 'msg ' + type; el.style.display = 'block';
+  setTimeout(() => el.style.display='none', 4000);
+}
+
+async function doLogin() {
+  const u = document.getElementById('login-user').value.trim();
+  const p = document.getElementById('login-pass').value;
+  if (!u || !p) return showMsg('login-msg','Completa todos los campos','err');
+  const r = await fetch('/login', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:u,password:p})});
+  const d = await r.json();
+  if (r.ok) {
+    token = d.token; username = u;
+    localStorage.setItem('token', token);
+    localStorage.setItem('username', username);
+    showApp();
+  } else showMsg('login-msg', d.error || 'Error al iniciar sesión', 'err');
+}
+
+async function doRegistro() {
+  const u = document.getElementById('reg-user').value.trim();
+  const e = document.getElementById('reg-email').value.trim();
+  const p = document.getElementById('reg-pass').value;
+  if (!u||!e||!p) return showMsg('reg-msg','Completa todos los campos','err');
+  const r = await fetch('/registro', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:u,email:e,password:p})});
+  const d = await r.json();
+  if (r.ok) {
+    token = d.token; username = u;
+    localStorage.setItem('token', token);
+    localStorage.setItem('username', username);
+    showApp();
+  } else showMsg('reg-msg', d.error || 'Error al registrarse', 'err');
+}
+
+async function cargarFeed() {
+  if (!token) return;
+  document.getElementById('feed-posts').innerHTML = '<p style="color:#888;text-align:center;padding:20px">Cargando...</p>';
+  const r = await fetch('/feed', {headers:{'Authorization':'Bearer '+token}});
+  if (!r.ok) { showMsg('feed-msg','Error al cargar el feed','err'); return; }
+  const d = await r.json();
+  const badge = `<span class="source-badge">${d.fuente === 'cache' ? '⚡ Redis caché' : '🗄 Base de datos'}</span>`;
+  const container = document.getElementById('feed-posts');
+  if (!d.posts.length) {
+    container.innerHTML = `<div style="text-align:center;padding:40px;color:#888">${badge}<br><br>Sin publicaciones aún.<br>¡Sé el primero en publicar!</div>`;
+    return;
+  }
+  container.innerHTML = badge + '<br><br>' + d.posts.map(p => `
+    <div class="post">
+      <div class="user">@${p.username}</div>
+      <div class="content">${p.contenido}</div>
+      <div class="meta">
+        <span>❤️ ${p.likes} likes</span>
+        <button class="like-btn" onclick="like(${p.id})">Like</button>
+        <span>${new Date(p.creado_en).toLocaleString('es-MX')}</span>
+      </div>
+    </div>`).join('');
+}
+
+async function publicar() {
+  const c = document.getElementById('pub-contenido').value.trim();
+  if (!c) return showMsg('pub-msg','Escribe algo primero','err');
+  if (c.length > 280) return showMsg('pub-msg','Máximo 280 caracteres','err');
+  const r = await fetch('/publicaciones', {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body:JSON.stringify({contenido:c})});
+  const d = await r.json();
+  if (r.ok) {
+    showMsg('pub-msg','¡Publicado correctamente!','ok');
+    document.getElementById('pub-contenido').value = '';
+    document.getElementById('char-num').textContent = '0';
+  } else showMsg('pub-msg', d.error || 'Error al publicar', 'err');
+}
+
+async function like(postId) {
+  await fetch(`/publicaciones/${postId}/like`, {method:'POST', headers:{'Authorization':'Bearer '+token}});
+  cargarFeed();
+}
+
+async function seguir() {
+  const id = document.getElementById('seg-id').value;
+  if (!id) return showMsg('seg-msg','Ingresa un ID de usuario','err');
+  const r = await fetch(`/seguir/${id}`, {method:'POST', headers:{'Authorization':'Bearer '+token}});
+  const d = await r.json();
+  showMsg('seg-msg', d.mensaje || d.error, r.ok ? 'ok' : 'err');
+}
+
+function updateCount() {
+  const len = document.getElementById('pub-contenido').value.length;
+  document.getElementById('char-num').textContent = len;
+  document.getElementById('char-num').style.color = len > 250 ? '#e74c3c' : '#888';
+}
+</script>
+</body>
+</html>

@@ -12,7 +12,7 @@ import psycopg2.extras
 from functools import wraps
 from datetime import datetime, timedelta, timezone
 
-from flask import Flask, request, jsonify, g
+from flask import Flask, request, jsonify, g, render_template
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 
@@ -126,6 +126,11 @@ def jwt_required(f):
 
 
 # ── /salud ───────────────────────────────────────────────────────────────────
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+
 @app.route("/salud")
 def salud():
     estado = {"api": "ok", "redis": "ok", "db": "ok"}
