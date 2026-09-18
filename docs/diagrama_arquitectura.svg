@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="900" height="620" viewBox="0 0 900 620" xmlns="http://www.w3.org/2000/svg" font-family="Arial, sans-serif">
+
+  <!-- Fondo -->
+  <rect width="900" height="620" fill="#f8f9fa" rx="12"/>
+
+  <!-- Título -->
+  <text x="450" y="38" text-anchor="middle" font-size="20" font-weight="bold" fill="#1a1a2e">Red Social de Formato Corto — Arquitectura</text>
+  <text x="450" y="58" text-anchor="middle" font-size="12" fill="#6c757d">Avance 2 · LSCA2314 · Henrique Alejandro Alvarado Castillo</text>
+
+  <!-- ZONA: CLIENTE -->
+  <rect x="30" y="80" width="140" height="80" rx="10" fill="#e8f4f8" stroke="#4a90d9" stroke-width="2"/>
+  <text x="100" y="108" text-anchor="middle" font-size="11" font-weight="bold" fill="#1a1a2e">🌐 Cliente</text>
+  <text x="100" y="126" text-anchor="middle" font-size="10" fill="#555">Navegador / App</text>
+  <text x="100" y="142" text-anchor="middle" font-size="10" fill="#555">HTTP REST + JWT</text>
+
+  <line x1="170" y1="120" x2="240" y2="120" stroke="#4a90d9" stroke-width="2" marker-end="url(#arrow-blue)"/>
+  <text x="205" y="113" text-anchor="middle" font-size="9" fill="#4a90d9">:5000</text>
+
+  <!-- ZONA: EC2 -->
+  <rect x="235" y="70" width="390" height="310" rx="12" fill="#fff8e7" stroke="#f0a500" stroke-width="2" stroke-dasharray="6,3"/>
+  <text x="430" y="92" text-anchor="middle" font-size="12" font-weight="bold" fill="#f0a500">☁ EC2  t3.medium  (54.83.117.47)</text>
+  <text x="430" y="107" text-anchor="middle" font-size="10" fill="#888">Amazon Linux 2023 · Docker Compose</text>
+
+  <!-- Contenedor 1: API Flask -->
+  <rect x="255" y="118" width="160" height="130" rx="8" fill="#d4edda" stroke="#28a745" stroke-width="2"/>
+  <text x="335" y="138" text-anchor="middle" font-size="11" font-weight="bold" fill="#155724">📦 Contenedor 1</text>
+  <text x="335" y="154" text-anchor="middle" font-size="11" font-weight="bold" fill="#155724">API Flask</text>
+  <text x="335" y="172" text-anchor="middle" font-size="9" fill="#333">python:3.12.11-slim</text>
+  <text x="335" y="187" text-anchor="middle" font-size="9" fill="#333">gunicorn · user: appuser</text>
+  <text x="335" y="202" text-anchor="middle" font-size="9" fill="#333">HEALTHCHECK ✓</text>
+  <text x="335" y="217" text-anchor="middle" font-size="9" fill="#333">Endpoints: /salud /registro</text>
+  <text x="335" y="230" text-anchor="middle" font-size="9" fill="#333">/login /feed /publicaciones</text>
+  <text x="335" y="243" text-anchor="middle" font-size="9" fill="#333">/seguir /like /upload</text>
+
+  <!-- Contenedor 2: Redis -->
+  <rect x="445" y="118" width="160" height="130" rx="8" fill="#fde8e8" stroke="#dc3545" stroke-width="2"/>
+  <text x="525" y="138" text-anchor="middle" font-size="11" font-weight="bold" fill="#721c24">📦 Contenedor 2</text>
+  <text x="525" y="154" text-anchor="middle" font-size="11" font-weight="bold" fill="#721c24">Redis (Caché)</text>
+  <text x="525" y="172" text-anchor="middle" font-size="9" fill="#333">redis:7.2.5-alpine</text>
+  <text x="525" y="187" text-anchor="middle" font-size="9" fill="#333">maxmemory: 128mb</text>
+  <text x="525" y="202" text-anchor="middle" font-size="9" fill="#333">policy: allkeys-lru</text>
+  <text x="525" y="217" text-anchor="middle" font-size="9" fill="#555">Caché del feed</text>
+  <text x="525" y="232" text-anchor="middle" font-size="9" fill="#555">TTL: 60 segundos</text>
+  <text x="525" y="247" text-anchor="middle" font-size="9" fill="#333">HEALTHCHECK ✓</text>
+
+  <line x1="415" y1="183" x2="445" y2="183" stroke="#dc3545" stroke-width="1.5" marker-end="url(#arrow-red)"/>
+  <text x="430" y="176" text-anchor="middle" font-size="8" fill="#dc3545">feed cache</text>
+
+  <rect x="255" y="262" width="350" height="30" rx="6" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1"/>
+  <text x="430" y="281" text-anchor="middle" font-size="9" fill="#475569">🔗 Docker Network: redsocial-net (bridge)</text>
+
+  <line x1="335" y1="248" x2="335" y2="310" stroke="#6f42c1" stroke-width="1.5" marker-end="url(#arrow-purple)"/>
+  <line x1="415" y1="183" x2="770" y2="183" stroke="#17a2b8" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrow-cyan)"/>
+
+  <!-- RDS -->
+  <rect x="245" y="415" width="190" height="120" rx="10" fill="#e8d5f5" stroke="#6f42c1" stroke-width="2"/>
+  <text x="340" y="437" text-anchor="middle" font-size="12" font-weight="bold" fill="#4b0082">🗄 RDS PostgreSQL</text>
+  <text x="340" y="454" text-anchor="middle" font-size="9" fill="#333">db.t3.micro · engine: 16.9</text>
+  <text x="340" y="469" text-anchor="middle" font-size="9" fill="#333">avance2-redsocial-db</text>
+  <text x="340" y="484" text-anchor="middle" font-size="9" fill="#333">Cifrado: ✅  Público: ❌</text>
+  <text x="340" y="499" text-anchor="middle" font-size="9" fill="#333">Tablas: usuarios, publicaciones</text>
+  <text x="340" y="514" text-anchor="middle" font-size="9" fill="#333">follows, likes</text>
+  <text x="340" y="529" text-anchor="middle" font-size="9" fill="#555">SG: solo desde EC2 :5432</text>
+
+  <line x1="340" y1="380" x2="340" y2="415" stroke="#6f42c1" stroke-width="1.5" marker-end="url(#arrow-purple)"/>
+  <text x="352" y="400" font-size="9" fill="#6f42c1">:5432</text>
+
+  <!-- S3 -->
+  <rect x="650" y="80" width="210" height="140" rx="10" fill="#d1ecf1" stroke="#17a2b8" stroke-width="2"/>
+  <text x="755" y="103" text-anchor="middle" font-size="12" font-weight="bold" fill="#0c5460">🪣 S3 Bucket</text>
+  <text x="755" y="120" text-anchor="middle" font-size="9" fill="#333">avance2-redsocial-media</text>
+  <text x="755" y="135" text-anchor="middle" font-size="9" fill="#333">-henrique</text>
+  <text x="755" y="152" text-anchor="middle" font-size="9" fill="#333">Cifrado: AES-256 ✅</text>
+  <text x="755" y="167" text-anchor="middle" font-size="9" fill="#333">Acceso público: ❌</text>
+  <text x="755" y="182" text-anchor="middle" font-size="9" fill="#333">Versionado: ✅</text>
+  <text x="755" y="197" text-anchor="middle" font-size="9" fill="#555">Contenido: media/user_id/...</text>
+
+  <!-- Pipeline -->
+  <rect x="490" y="415" width="370" height="175" rx="10" fill="#fff3cd" stroke="#ffc107" stroke-width="2"/>
+  <text x="675" y="437" text-anchor="middle" font-size="12" font-weight="bold" fill="#856404">🔒 Pipeline DevSecOps</text>
+  <text x="675" y="452" text-anchor="middle" font-size="9" fill="#856404">pipeline/pipeline.sh · Decisión final integrada</text>
+
+  <rect x="502" y="460" width="100" height="40" rx="5" fill="#28a745" stroke="#1e7e34" stroke-width="1"/>
+  <text x="552" y="476" text-anchor="middle" font-size="9" font-weight="bold" fill="white">Etapa 1</text>
+  <text x="552" y="490" text-anchor="middle" font-size="8" fill="white">Semgrep Secrets</text>
+
+  <rect x="614" y="460" width="100" height="40" rx="5" fill="#28a745" stroke="#1e7e34" stroke-width="1"/>
+  <text x="664" y="476" text-anchor="middle" font-size="9" font-weight="bold" fill="white">Etapa 2</text>
+  <text x="664" y="490" text-anchor="middle" font-size="8" fill="white">Bandit SAST</text>
+
+  <rect x="726" y="460" width="122" height="40" rx="5" fill="#28a745" stroke="#1e7e34" stroke-width="1"/>
+  <text x="787" y="476" text-anchor="middle" font-size="9" font-weight="bold" fill="white">Etapa 3</text>
+  <text x="787" y="490" text-anchor="middle" font-size="8" fill="white">Trivy (imagen)</text>
+
+  <rect x="502" y="512" width="100" height="40" rx="5" fill="#28a745" stroke="#1e7e34" stroke-width="1"/>
+  <text x="552" y="528" text-anchor="middle" font-size="9" font-weight="bold" fill="white">Etapa 4</text>
+  <text x="552" y="542" text-anchor="middle" font-size="8" fill="white">Checkov IaC</text>
+
+  <rect x="614" y="512" width="100" height="40" rx="5" fill="#17a2b8" stroke="#117a8b" stroke-width="1"/>
+  <text x="664" y="528" text-anchor="middle" font-size="9" font-weight="bold" fill="white">Etapa 5</text>
+  <text x="664" y="542" text-anchor="middle" font-size="8" fill="white">Syft SBOM</text>
+
+  <rect x="726" y="512" width="122" height="40" rx="5" fill="#343a40" stroke="#1a1a2e" stroke-width="1.5"/>
+  <text x="787" y="528" text-anchor="middle" font-size="9" font-weight="bold" fill="white">Veredicto</text>
+  <text x="787" y="542" text-anchor="middle" font-size="8" fill="#ffc107">✅ Verde / ❌ Rojo</text>
+
+  <line x1="602" y1="480" x2="614" y2="480" stroke="#856404" stroke-width="1" marker-end="url(#arrow-gold)"/>
+  <line x1="714" y1="480" x2="726" y2="480" stroke="#856404" stroke-width="1" marker-end="url(#arrow-gold)"/>
+  <line x1="602" y1="532" x2="614" y2="532" stroke="#856404" stroke-width="1" marker-end="url(#arrow-gold)"/>
+  <line x1="714" y1="532" x2="726" y2="532" stroke="#856404" stroke-width="1" marker-end="url(#arrow-gold)"/>
+
+  <!-- Leyenda -->
+  <rect x="30" y="430" width="190" height="160" rx="8" fill="white" stroke="#dee2e6" stroke-width="1"/>
+  <text x="125" y="450" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">Leyenda</text>
+  <rect x="45" y="460" width="14" height="14" rx="2" fill="#d4edda" stroke="#28a745" stroke-width="1"/>
+  <text x="65" y="472" font-size="9" fill="#333">Contenedor Docker</text>
+  <rect x="45" y="482" width="14" height="14" rx="2" fill="#e8d5f5" stroke="#6f42c1" stroke-width="1"/>
+  <text x="65" y="494" font-size="9" fill="#333">AWS RDS PostgreSQL</text>
+  <rect x="45" y="504" width="14" height="14" rx="2" fill="#d1ecf1" stroke="#17a2b8" stroke-width="1"/>
+  <text x="65" y="516" font-size="9" fill="#333">AWS S3 (media)</text>
+  <rect x="45" y="526" width="14" height="14" rx="2" fill="#fff8e7" stroke="#f0a500" stroke-width="1" stroke-dasharray="4,2"/>
+  <text x="65" y="538" font-size="9" fill="#333">EC2 (docker-compose)</text>
+  <rect x="45" y="548" width="14" height="14" rx="2" fill="#fff3cd" stroke="#ffc107" stroke-width="1"/>
+  <text x="65" y="560" font-size="9" fill="#333">Pipeline DevSecOps</text>
+  <line x1="45" y1="574" x2="59" y2="574" stroke="#4a90d9" stroke-width="2"/>
+  <text x="65" y="578" font-size="9" fill="#333">Tráfico HTTP (usuario)</text>
+
+  <defs>
+    <marker id="arrow-blue" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#4a90d9"/>
+    </marker>
+    <marker id="arrow-red" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#dc3545"/>
+    </marker>
+    <marker id="arrow-purple" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#6f42c1"/>
+    </marker>
+    <marker id="arrow-cyan" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#17a2b8"/>
+    </marker>
+    <marker id="arrow-gold" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#856404"/>
+    </marker>
+  </defs>
+
+</svg>
