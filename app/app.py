@@ -66,6 +66,20 @@ def close_db(exc):
         db.close()
 
 
+# ── Inicializar tablas en la primera request ─────────────────────────────────
+_db_initialized = False
+
+@app.before_request
+def ensure_db():
+    global _db_initialized
+    if not _db_initialized:
+        try:
+            init_db()
+            _db_initialized = True
+        except Exception:
+            pass
+
+
 # ── Inicialización de la BD ──────────────────────────────────────────────────
 def init_db():
     db = get_db()
@@ -155,7 +169,7 @@ def salud():
 # ── Autenticación ────────────────────────────────────────────────────────────
 @app.route("/registro", methods=["POST"])
 def registro():
-    data = request.get_json(silent=True) or {}
+    data = request.get_json(silent=True, force=True) or {}
     username = (data.get("username") or "").strip()
     email    = (data.get("email") or "").strip()
     password = data.get("password") or ""
@@ -185,7 +199,7 @@ def registro():
 
 @app.route("/login", methods=["POST"])
 def login():
-    data = request.get_json(silent=True) or {}
+    data = request.get_json(silent=True, force=True) or {}
     username = (data.get("username") or "").strip()
     password = data.get("password") or ""
 
@@ -218,7 +232,7 @@ def _generar_token(user_id):
 @app.route("/publicaciones", methods=["POST"])
 @jwt_required
 def crear_publicacion():
-    data = request.get_json(silent=True) or {}
+    data = request.get_json(silent=True, force=True) or {}
     contenido = (data.get("contenido") or "").strip()
     if not contenido:
         return jsonify({"error": "contenido es obligatorio"}), 400
