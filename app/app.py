@@ -290,7 +290,8 @@ def feed():
     cur.execute("""
         SELECT p.id, p.contenido, p.imagen_url, p.creado_en,
                u.username, u.avatar_url,
-               (SELECT COUNT(*) FROM likes l WHERE l.post_id = p.id) AS likes
+               (SELECT COUNT(*) FROM likes l WHERE l.post_id = p.id) AS likes,
+               EXISTS(SELECT 1 FROM likes l2 WHERE l2.post_id = p.id AND l2.user_id = %s) AS liked
         FROM publicaciones p
         JOIN usuarios u ON u.id = p.user_id
         WHERE p.user_id = %s
@@ -299,7 +300,7 @@ def feed():
            )
         ORDER BY p.creado_en DESC
         LIMIT 50
-    """, (g.user_id, g.user_id))
+    """, (g.user_id, g.user_id, g.user_id))
     rows = cur.fetchall()
     cur.close()
 
@@ -313,10 +314,99 @@ def feed():
             "username":   row["username"],
             "avatar_url": row["avatar_url"],
             "likes":      row["likes"],
+            "liked":      row["liked"],
         })
 
     r.setex(cache_key, FEED_CACHE_TTL, json.dumps(posts))
     return jsonify({"fuente": "db", "posts": posts}), 200
+
+
+# ── Explorar: todas las publicaciones (para descubrir usuarios) ──────────────
+@app.route("/explorar")
+@jwt_required
+def explorar():
+    db = get_db()
+    cur = db.cursor()
+    cur.execute("""
+        SELECT p.id, p.contenido, p.creado_en, u.username,
+               (SELECT COUNT(*) FROM likes l WHERE l.post_id = p.id) AS likes,
+               EXISTS(SELECT 1 FROM likes l2 WHERE l2.post_id = p.id AND l2.user_id = %s) AS liked
+        FROM publicaciones p
+        JOIN usuarios u ON u.id = p.user_id
+        ORDER BY p.creado_en DESC
+        LIMIT 50
+    """, (g.user_id,))
+    rows = cur.fetchall()
+    cur.close()
+    posts = [{
+        "id": r["id"], "contenido": r["contenido"], "creado_en": str(r["creado_en"]),
+        "username": r["username"], "likes": r["likes"], "liked": r["liked"],
+    } for r in rows]
+    return jsonify({"posts": posts}), 200
+
+
+# ── Mis publicaciones (perfil propio) ────────────────────────────────────────
+@app.route("/mis-publicaciones")
+@jwt_required
+def mis_publicaciones():
+    db = get_db()
+    cur = db.cursor()
+    cur.execute("""
+        SELECT p.id, p.contenido, p.creado_en, u.username,
+               (SELECT COUNT(*) FROM likes l WHERE l.post_id = p.id) AS likes,
+               EXISTS(SELECT 1 FROM likes l2 WHERE l2.post_id = p.id AND l2.user_id = %s) AS liked
+        FROM publicaciones p
+        JOIN usuarios u ON u.id = p.user_id
+        WHERE p.user_id = %s
+        ORDER BY p.creado_en DESC
+    """, (g.user_id, g.user_id))
+    rows = cur.fetchall()
+    cur.execute("""
+        SELECT username, bio, creado_en,
+               (SELECT COUNT(*) FROM follows WHERE seguido_id  = %s) AS seguidores,
+               (SELECT COUNT(*) FROM follows WHERE seguidor_id = %s) AS siguiendo,
+               (SELECT COUNT(*) FROM publicaciones WHERE user_id = %s) AS posts
+        FROM usuarios WHERE id = %s
+    """, (g.user_id, g.user_id, g.user_id, g.user_id))
+    info = cur.fetchone()
+    cur.close()
+    posts = [{
+        "id": r["id"], "contenido": r["contenido"], "creado_en": str(r["creado_en"]),
+        "username": r["username"], "likes": r["likes"], "liked": r["liked"],
+    } for r in rows]
+    perfil = {
+        "username": info["username"], "bio": info["bio"],
+        "seguidores": info["seguidores"], "siguiendo": info["siguiendo"],
+        "posts": info["posts"], "creado_en": str(info["creado_en"]),
+    }
+    return jsonify({"perfil": perfil, "posts": posts}), 200
+
+
+# ── Seguir por username ──────────────────────────────────────────────────────
+@app.route("/seguir-usuario/<username>", methods=["POST"])
+@jwt_required
+def seguir_por_username(username):
+    db = get_db()
+    cur = db.cursor()
+    cur.execute("SELECT id FROM usuarios WHERE username = %s", (username,))
+    row = cur.fetchone()
+    if not row:
+        cur.close()
+        return jsonify({"error": f"El usuario '{username}' no existe"}), 404
+    seguido_id = row["id"]
+    if seguido_id == g.user_id:
+        cur.close()
+        return jsonify({"error": "No puedes seguirte a ti mismo"}), 400
+    try:
+        cur.execute("INSERT INTO follows (seguidor_id, seguido_id) VALUES (%s, %s)",
+                    (g.user_id, seguido_id))
+        db.commit()
+    except psycopg2.errors.UniqueViolation:
+        cur.close()
+        return jsonify({"error": f"Ya sigues a {username}"}), 409
+    cur.close()
+    _invalidar_cache_feed(g.user_id)
+    return jsonify({"mensaje": f"Ahora sigues a {username}"}), 201
 
 
 def _invalidar_cache_feed(user_id):
@@ -387,9 +477,11 @@ def dar_like(post_id):
         )
         db.commit()
     except psycopg2.errors.UniqueViolation:
-        return jsonify({"error": "Ya diste like"}), 409
-    finally:
+        db.rollback()
         cur.close()
+        return jsonify({"error": "Ya diste like"}), 409
+    cur.close()
+    _invalidar_cache_feed(g.user_id)
     return jsonify({"mensaje": "Like registrado"}), 201
 
 
@@ -407,6 +499,7 @@ def quitar_like(post_id):
     cur.close()
     if not deleted:
         return jsonify({"error": "No habías dado like"}), 404
+    _invalidar_cache_feed(g.user_id)
     return jsonify({"mensaje": "Like eliminado"}), 200
 
 
