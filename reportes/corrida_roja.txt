@@ -1,2 +1,45 @@
-[PENDIENTE] Este archivo se llenará con la salida real del pipeline bloqueando.
-Ejecutar: ./pipeline/pipeline.sh > reportes/corrida_roja.txt 2>&1
+
+[1m[0;36m══════════════════════════════════════[0m
+[1m[0;36m  ETAPA 1 · Secrets Scanning (Semgrep)[0m
+[1m[0;36m══════════════════════════════════════[0m
+[0;36m[02:34:16][0m Buscando credenciales y secretos en el código fuente...
+[0;32m✅ Etapa 1: Sin secretos detectados[0m
+
+[1m[0;36m══════════════════════════════════════[0m
+[1m[0;36m  ETAPA 2 · SAST Python (Bandit)[0m
+[1m[0;36m══════════════════════════════════════[0m
+[0;36m[02:34:20][0m Analizando código Python en busca de vulnerabilidades...
+[0;32m✅ Etapa 2: Sin hallazgos HIGH/CRITICAL en Bandit[0m
+
+[1m[0;36m══════════════════════════════════════[0m
+[1m[0;36m  ETAPA 3 · Vulnerabilidades en imagen (Trivy)[0m
+[1m[0;36m══════════════════════════════════════[0m
+[0;36m[02:34:21][0m Construyendo imagen de prueba...
+sha256:99c689b7d78fed2d95af504e0507ab9139293d14d2d688906115d1c77e233f66
+[0;36m[02:34:21][0m Escaneando imagen redsocial-api:pipeline-test...
+[0;31m❌ Etapa 3: Trivy encontró 105 CVE(s) HIGH/CRITICAL en la imagen[0m
+
+[1m[0;36m══════════════════════════════════════[0m
+[1m[0;36m  ETAPA 4 · Infraestructura como Código (Checkov)[0m
+[1m[0;36m══════════════════════════════════════[0m
+[0;36m[02:34:22][0m Analizando archivos Terraform en infra/...
+[0;32m✅ Etapa 4: IaC sin hallazgos críticos[0m
+
+[1m[0;36m══════════════════════════════════════[0m
+[1m[0;36m  ETAPA 5 · SBOM (Syft / CycloneDX)[0m
+[1m[0;36m══════════════════════════════════════[0m
+[0;36m[02:34:26][0m Generando inventario de dependencias...
+[0;32m✅ Etapa 5: SBOM generado en reportes/sbom_cyclonedx.json[0m
+
+[1m[0;36m══════════════════════════════════════[0m
+[1m[0;36m  VEREDICTO FINAL[0m
+[1m[0;36m══════════════════════════════════════[0m
+[0;31m[1m
+╔══════════════════════════════════════╗
+║         ❌  PIPELINE: ROJO           ║
+║         DESPLIEGUE BLOQUEADO         ║
+╚══════════════════════════════════════╝
+
+Hallazgos que causaron el bloqueo:
+  → Etapa 3: Trivy encontró 105 CVE(s) HIGH/CRITICAL en la imagen
+[0m

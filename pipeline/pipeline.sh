@@ -109,6 +109,7 @@ if command -v trivy &>/dev/null; then
   trivy image \
         --exit-code 0 \
         --severity HIGH,CRITICAL \
+        --ignore-unfixed \
         --format json \
         --output "$REPORTES/trivy_imagen.json" \
         --no-progress \

@@ -1,5 +1,5 @@
 # ── Imagen base fija (sin usar :latest) ─────────────────────────────────────
-FROM python:3.12.4-slim
+FROM python:3.12.11-slim-bookworm
 
 # ── Metadata ────────────────────────────────────────────────────────────────
 LABEL maintainer="Henrique Alvarado"
@@ -14,7 +14,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 # ── Instalar dependencias del sistema (sin extras) ──────────────────────────
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
         libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
