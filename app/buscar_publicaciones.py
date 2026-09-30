@@ -8,36 +8,50 @@ las publicaciones de un usuario específico por su nombre.
 NOTA DE INTEGRACIÓN:
 El parche original venía escrito para SQLAlchemy (from app.db import engine).
 Este proyecto usa psycopg2 directo, así que se adaptó para reutilizar la misma
-conexión get_db() de app.py, manteniendo la lógica de la funcionalidad tal como
-se entregó.
+conexión get_db() de app.py.
+
+REMEDIACIÓN (CWE-89 / SQL Injection):
+La versión entregada del parche concatenaba el valor del cliente dentro del
+texto SQL, lo que permitía inyección. Se corrigió usando consultas
+parametrizadas (parámetros ligados con %s), se agregó validación de entrada y
+se protegió el endpoint con JWT. La funcionalidad (buscar por usuario) se
+mantiene idéntica.
 """
+import os
 from flask import Blueprint, request, jsonify
+
+from app import jwt_required, get_db
 
 buscar_bp = Blueprint("buscar", __name__)
 
-
-def obtener_conexion():
-    """Reutiliza la conexión psycopg2 por-request definida en app.py."""
-    from app import get_db
-    return get_db()
+# Bandera de contención: permite desactivar el endpoint sin redeploy.
+BUSCAR_HABILITADO = os.environ.get("BUSCAR_HABILITADO", "true").lower() == "true"
 
 
 @buscar_bp.route("/publicaciones/buscar", methods=["GET"])
+@jwt_required
 def buscar_por_usuario():
     """Devuelve las publicaciones de un usuario dado su nombre."""
-    nombre_usuario = request.args.get("usuario", "")
+    if not BUSCAR_HABILITADO:
+        return jsonify({"error": "Búsqueda temporalmente deshabilitada"}), 503
 
-    # Se arma la consulta concatenando directamente el valor recibido del cliente.
+    nombre_usuario = (request.args.get("usuario", "") or "").strip()
+    if not nombre_usuario:
+        return jsonify({"error": "El parámetro 'usuario' es obligatorio"}), 400
+
+    # Consulta parametrizada: el valor viaja como dato ligado (%s), nunca como
+    # parte del texto SQL. psycopg2 se encarga del escape, así que no hay forma
+    # de alterar la estructura de la consulta desde el input del cliente.
     consulta = (
         "SELECT p.id, p.contenido, p.creado_en "
         "FROM publicaciones p JOIN usuarios u ON u.id = p.user_id "
-        "WHERE u.username = '" + nombre_usuario + "' "
+        "WHERE u.username = %s "
         "ORDER BY p.creado_en DESC LIMIT 20"
     )
 
-    conexion = obtener_conexion()
+    conexion = get_db()
     cur = conexion.cursor()
-    cur.execute(consulta)
+    cur.execute(consulta, (nombre_usuario,))
     filas = cur.fetchall()
     cur.close()
 
