@@ -1,0 +1,48 @@
+
+[1m[0;36m══════════════════════════════════════[0m
+[1m[0;36m  ETAPA 1 · Secrets Scanning (Semgrep)[0m
+[1m[0;36m══════════════════════════════════════[0m
+[0;36m[04:30:30][0m Buscando credenciales y secretos en el código fuente...
+[0;32m✅ Etapa 1: Sin secretos detectados[0m
+
+[1m[0;36m══════════════════════════════════════[0m
+[1m[0;36m  ETAPA 2 · SAST Python (Bandit)[0m
+[1m[0;36m══════════════════════════════════════[0m
+[0;36m[04:30:32][0m Analizando código Python en busca de vulnerabilidades...
+[0;32m✅ Etapa 2: Sin hallazgos HIGH/CRITICAL en Bandit[0m
+
+[1m[0;36m══════════════════════════════════════[0m
+[1m[0;36m  ETAPA 2.5 · SAST Inyección SQL (Semgrep + Bandit B608)[0m
+[1m[0;36m══════════════════════════════════════[0m
+[0;36m[04:30:32][0m Buscando SQL construido con input del usuario (CWE-89)...
+[0;32m✅ Etapa 2.5: Sin patrones de inyección SQL detectados[0m
+
+[1m[0;36m══════════════════════════════════════[0m
+[1m[0;36m  ETAPA 3 · Vulnerabilidades en imagen (Trivy)[0m
+[1m[0;36m══════════════════════════════════════[0m
+[0;36m[04:30:36][0m Construyendo imagen de prueba...
+sha256:ac08195e6a2a337a3f4256f04438b55f6945fade6a0bc486da11e779c299fea5
+[0;36m[04:30:37][0m Escaneando imagen redsocial-api:pipeline-test...
+[0;32m✅ Etapa 3: Sin CVEs HIGH/CRITICAL en la imagen[0m
+
+[1m[0;36m══════════════════════════════════════[0m
+[1m[0;36m  ETAPA 4 · Infraestructura como Código (Checkov)[0m
+[1m[0;36m══════════════════════════════════════[0m
+[0;36m[04:30:37][0m Analizando archivos Terraform en infra/...
+[0;32m✅ Etapa 4: IaC sin hallazgos críticos[0m
+
+[1m[0;36m══════════════════════════════════════[0m
+[1m[0;36m  ETAPA 5 · SBOM (Syft / CycloneDX)[0m
+[1m[0;36m══════════════════════════════════════[0m
+[0;36m[04:30:40][0m Generando inventario de dependencias...
+[0;32m✅ Etapa 5: SBOM generado en reportes/sbom_cyclonedx.json[0m
+
+[1m[0;36m══════════════════════════════════════[0m
+[1m[0;36m  VEREDICTO FINAL[0m
+[1m[0;36m══════════════════════════════════════[0m
+[0;32m[1m
+╔══════════════════════════════════════╗
+║         ✅  PIPELINE: VERDE          ║
+║         DESPLIEGUE PERMITIDO         ║
+╚══════════════════════════════════════╝
+[0m
