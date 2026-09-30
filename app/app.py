@@ -565,6 +565,13 @@ def upload_imagen():
     return jsonify({"url": url}), 201
 
 
+# ── Funcionalidad nueva (Entrega Final): buscar publicaciones por usuario ────
+# Se registra al final, cuando get_db y jwt_required ya están definidos, para
+# evitar un import circular con buscar_publicaciones.py.
+from buscar_publicaciones import buscar_bp
+app.register_blueprint(buscar_bp)
+
+
 # ── Arranque ─────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     with app.app_context():
