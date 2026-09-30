@@ -49,3 +49,5 @@ Thumbs.db
 reportes/*.txt
 !reportes/corrida_roja.txt
 !reportes/corrida_verde.txt
+!reportes/pipeline_bloqueado.txt
+!reportes/pipeline_verde.txt
