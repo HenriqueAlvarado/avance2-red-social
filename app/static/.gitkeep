@@ -1,0 +1,3 @@
+# Este archivo mantiene la carpeta static/ en el repositorio.
+# El Dockerfile hace COPY static/ static/, por lo que la carpeta debe existir
+# aunque esté vacía (git no versiona carpetas vacías por sí solas).
