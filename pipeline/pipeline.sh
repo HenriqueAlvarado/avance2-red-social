@@ -119,9 +119,11 @@ if command -v semgrep &>/dev/null; then
 import json
 with open('$REPORTES/semgrep_inyeccion.json') as f:
   d = json.load(f)
+# Solo inyección SQL: el check_id debe mencionar 'sql' explícitamente.
+# (Se evita 'inject' a secas porque matchea reglas de URL como
+#  injection.tainted-url-host, que no son SQLi.)
 count = sum(1 for r in d.get('results', [])
-            if 'sql' in r.get('check_id', '').lower()
-            or 'inject' in r.get('check_id', '').lower())
+            if 'sql' in r.get('check_id', '').lower())
 print(count)
 " 2>/dev/null || echo "0")
   INYECCIONES=$((INYECCIONES + SG_INJ))
@@ -203,6 +205,10 @@ header "ETAPA 4 · Infraestructura como Código (Checkov)"
 log "Analizando archivos Terraform en infra/..."
 
 if command -v checkov &>/dev/null; then
+  # Limpia un posible directorio residual con ese nombre (versiones previas del
+  # pipeline usaban --output-file, que creaba un directorio en vez de archivo).
+  rm -rf "$REPORTES/checkov_resultado.json"
+
   # Se escribe el JSON al archivo y se silencia el volcado a la terminal con
   # --quiet (antes ensuciaba la salida del pipeline con miles de líneas).
   # El umbral de esta etapa se mantiene igual que en el Avance 2: solo
