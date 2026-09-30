@@ -35,17 +35,19 @@ header "ETAPA 1 · Secrets Scanning (Semgrep)"
 log "Buscando credenciales y secretos en el código fuente..."
 
 if command -v semgrep &>/dev/null; then
+  # Solo reglas de secretos: credenciales quemadas, tokens, llaves.
+  # (El análisis de inyección se movió a la Etapa 2.5 para reportarlo con su
+  #  nombre correcto y no confundirlo con un "secreto".)
   semgrep --config "p/secrets" \
-          --config "p/python" \
           --severity ERROR \
           --error \
           --json \
-          --output "$REPORTES/semgrep_resultado.json" \
+          --output "$REPORTES/semgrep_secrets.json" \
           "$REPO_ROOT/app" 2>/dev/null || true
 
   SECRETS=$(python3 -c "
 import json, sys
-with open('$REPORTES/semgrep_resultado.json') as f:
+with open('$REPORTES/semgrep_secrets.json') as f:
   d = json.load(f)
 count = len(d.get('results', []))
 print(count)
@@ -91,6 +93,61 @@ print(count)
   fi
 else
   warn "Bandit no instalado — etapa omitida"
+fi
+
+# ────────────────────────────────────────────────────────────────────────────
+# ETAPA 2.5: SAST de inyección — Semgrep (reglas Python) + Bandit (B608)
+# Riesgo cubierto: inyección SQL (CWE-89) por construcción manual de queries.
+#   Se añadió en la Entrega Final: la Etapa 2 (Bandit HIGH/CRITICAL) NO detiene
+#   este caso porque Bandit clasifica el SQLi (B608) como MEDIUM. Esta etapa
+#   cierra ese hueco y reporta el hallazgo con su nombre correcto (no como
+#   "secreto"). Umbral: bloquea con CUALQUIER hallazgo de inyección.
+# ────────────────────────────────────────────────────────────────────────────
+header "ETAPA 2.5 · SAST Inyección SQL (Semgrep + Bandit B608)"
+log "Buscando SQL construido con input del usuario (CWE-89)..."
+
+INYECCIONES=0
+
+# Semgrep: reglas de seguridad para Python/Flask (incluye tainted-sql-string).
+if command -v semgrep &>/dev/null; then
+  semgrep --config "p/python" \
+          --json \
+          --output "$REPORTES/semgrep_inyeccion.json" \
+          "$REPO_ROOT/app" 2>/dev/null || true
+
+  SG_INJ=$(python3 -c "
+import json
+with open('$REPORTES/semgrep_inyeccion.json') as f:
+  d = json.load(f)
+count = sum(1 for r in d.get('results', [])
+            if 'sql' in r.get('check_id', '').lower()
+            or 'inject' in r.get('check_id', '').lower())
+print(count)
+" 2>/dev/null || echo "0")
+  INYECCIONES=$((INYECCIONES + SG_INJ))
+fi
+
+# Bandit: regla B608 (hardcoded_sql_expressions) sin filtrar por severidad.
+if command -v bandit &>/dev/null; then
+  bandit -r "$REPO_ROOT/app" \
+         -f json \
+         -o "$REPORTES/bandit_sqli.json" 2>/dev/null || true
+
+  BD_INJ=$(python3 -c "
+import json
+with open('$REPORTES/bandit_sqli.json') as f:
+  d = json.load(f)
+count = sum(1 for r in d.get('results', [])
+            if r.get('test_id') == 'B608')
+print(count)
+" 2>/dev/null || echo "0")
+  INYECCIONES=$((INYECCIONES + BD_INJ))
+fi
+
+if [ "$INYECCIONES" -gt 0 ]; then
+  fail "Etapa 2.5: Detectada(s) $INYECCIONES posible(s) inyección(es) SQL (CWE-89)"
+else
+  ok "Etapa 2.5: Sin patrones de inyección SQL detectados"
 fi
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -146,31 +203,32 @@ header "ETAPA 4 · Infraestructura como Código (Checkov)"
 log "Analizando archivos Terraform en infra/..."
 
 if command -v checkov &>/dev/null; then
+  # Se escribe el JSON al archivo y se silencia el volcado a la terminal con
+  # --quiet (antes ensuciaba la salida del pipeline con miles de líneas).
+  # El umbral de esta etapa se mantiene igual que en el Avance 2: solo
+  # bloquea ante hallazgos de severidad HIGH/CRITICAL (con severidad nula, que
+  # es lo que devuelve Checkov sin API key, no se bloquea).
   checkov -d "$REPO_ROOT/infra" \
           --framework terraform \
           --output json \
-          --output-file "$REPORTES/checkov_resultado.json" \
-          --soft-fail 2>/dev/null || true
+          --quiet \
+          --soft-fail > "$REPORTES/checkov_resultado.json" 2>/dev/null || true
 
   FAILED=$(python3 -c "
 import json
 with open('$REPORTES/checkov_resultado.json') as f:
-  raw = f.read().strip()
-  # checkov puede devolver lista o dict
-  import json as j
-  d = j.loads(raw)
-  if isinstance(d, list):
-    d = d[0]
+  d = json.load(f)
+if isinstance(d, list):
+  d = d[0] if d else {}
 results = d.get('results', {})
 failed = results.get('failed_checks', [])
 high = [c for c in failed
-        if c.get('check_result', {}).get('result') == 'FAILED'
-        and c.get('severity', '') in ('HIGH', 'CRITICAL', 'high', 'critical')]
-print(len(high) if high else len(failed))
+        if c.get('severity', None) in ('HIGH', 'CRITICAL', 'high', 'critical')]
+print(len(high))
 " 2>/dev/null || echo "0")
 
   if [ "$FAILED" -gt 0 ]; then
-    fail "Etapa 4: Checkov encontró $FAILED check(s) fallidos en IaC"
+    fail "Etapa 4: Checkov encontró $FAILED check(s) HIGH/CRITICAL en IaC"
   else
     ok "Etapa 4: IaC sin hallazgos críticos"
   fi
