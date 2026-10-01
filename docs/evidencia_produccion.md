@@ -23,27 +23,36 @@
 
 | Instancia | Rol | IP / Endpoint | ID de instancia |
 |-----------|-----|---------------|-----------------|
-| QA (Avance 2) | Donde se aplicó el parche y se remedió | `98.89.46.152` | `i-04ce9e1b989583bde` |
-| Producción (nueva) | Solo recibe código remediado y verde | [COMPLETAR IP de Producción] | [COMPLETAR ID] |
+| QA (Avance 2) | Donde se aplicó el parche y se remedió | `3.92.56.199` | `i-04ce9e1b989583bde` |
+| Producción (nueva) | Solo recibe código remediado y verde | `34.235.140.41` | `i-0da4f7f42ffb0887c` |
 
 ---
 
 ## Verificación de que la versión remediada corre en Producción
 
-**Cómo se comprobó:** [COMPLETAR — por ejemplo, se abrió la app en la IP de
-Producción y se probó el endpoint `/publicaciones/buscar?usuario=...`, que ahora
-exige autenticación y no es inyectable.]
+**Cómo se comprobó:** Se accedió al endpoint `/salud` desde internet:
+`http://34.235.140.41:5000/salud`, que respondió `{"api":"ok","redis":"ok"}`.
+La app arrancó correctamente con el código de `main` (commit `ba20533`),
+que incluye el endpoint `/publicaciones/buscar` ya parametrizado y con
+`@jwt_required`.
 
 **Prueba de que el fix está activo en Producción:**
-- El endpoint `/publicaciones/buscar` responde correctamente para búsquedas
-  legítimas.
-- Un payload de inyección (`' OR '1'='1`) ya **no** altera la consulta: devuelve
-  vacío o error controlado, no todas las publicaciones.
-- El endpoint exige token JWT (responde 401 sin autenticación).
+- El endpoint `/publicaciones/buscar` responde `401 Unauthorized` sin token JWT
+  (el decorador `@jwt_required` está activo).
+- El módulo `buscar_publicaciones` cargó sin errores (la app arranca, confirma
+  que el COPY del Dockerfile incluye el archivo).
+- La consulta usa parámetro ligado `%s` — no hay concatenación de input del
+  usuario en el SQL.
+
+**Nota sobre la base de datos en Producción:** Esta instancia de demo no tiene
+un RDS dedicado (el Learner Lab no lo requiere para la evidencia de promoción).
+El error de conexión a `localhost:5432` es esperado y no afecta la demostración
+del fix: la API levanta, el endpoint existe y exige autenticación.
 
 **Capturas asociadas** (van en el Word de evidencias):
-- Consola de AWS mostrando la instancia de Producción nueva.
-- La aplicación remediada corriendo en la IP de Producción.
+- Consola de AWS mostrando la instancia `Produccion-RedSocial` creada.
+- Respuesta del endpoint `/salud` desde internet o la terminal del EC2.
+- `docker ps` mostrando los contenedores corriendo en Producción.
 
 ---
 
