@@ -24,6 +24,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # ── Copiar código fuente ──────────────────────────────────────────────────────
 COPY app.py .
+COPY buscar_publicaciones.py .
 COPY templates/ templates/
 COPY static/ static/
 
